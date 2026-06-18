@@ -1,0 +1,487 @@
+/* =====================================================================
+   FindPoint — custom styles
+   Layered on top of Bootstrap 5.3 (loaded first in header.php).
+   Bootstrap handles grid/spacing/forms — everything below gives the
+   site its own identity: colours, type, and the "claim ticket" card
+   used for every item listing on the site.
+   ===================================================================== */
+
+/* ---- Fonts -------------------------------------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+/* ---- Design tokens -------------------------------------------------
+   Change these and the whole site re-colours itself. */
+:root {
+    --color-bg: #FAF7F1;          /* warm paper background */
+    --color-surface: #FFFFFF;     /* cards, nav, forms */
+    --color-ink: #1E2A2F;         /* primary text */
+    --color-ink-soft: #5B6B70;    /* secondary text */
+    --color-primary: #0E5C56;     /* deep teal — brand, trust */
+    --color-primary-dark: #0A4640;
+    --color-accent: #E8A33D;      /* warm amber — calls to action */
+    --color-accent-dark: #C7872A;
+    --color-lost: #C1502E;        /* terracotta — "lost" tag */
+    --color-found: #2F8F7A;       /* teal-green — "found" tag */
+    --color-border: #E3DACB;      /* warm hairline border */
+    --notch-bg: var(--color-bg);  /* colour used for the ticket "punch holes" */
+
+    --font-display: 'Space Grotesk', 'Segoe UI', sans-serif;
+    --font-body: 'Inter', 'Segoe UI', sans-serif;
+
+    --radius-card: 14px;
+    --shadow-card: 0 1px 2px rgba(30, 42, 47, 0.06), 0 10px 24px -14px rgba(30, 42, 47, 0.25);
+}
+
+/* ---- Base ----------------------------------------------------------*/
+body {
+    background-color: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+}
+
+h1, h2, h3, h4, h5, .display-font {
+    font-family: var(--font-display);
+    color: var(--color-ink);
+    letter-spacing: -0.01em;
+}
+
+a {
+    color: var(--color-primary);
+}
+
+a:hover {
+    color: var(--color-primary-dark);
+}
+
+main {
+    min-height: 60vh;
+}
+
+.text-soft {
+    color: var(--color-ink-soft);
+}
+
+.ref-code {
+    font-family: var(--font-display);
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    color: var(--color-ink-soft);
+    text-transform: uppercase;
+}
+
+/* Visible focus ring everywhere, for keyboard users */
+a:focus-visible, button:focus-visible, input:focus-visible,
+textarea:focus-visible, select:focus-visible {
+    outline: 3px solid var(--color-accent);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+}
+
+/* ---- Buttons ---------------------------------------------------------
+   Custom brand buttons. Bootstrap's .btn class still supplies the
+   padding/border-radius/transition; these just override the colour. */
+.btn-brand {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #fff;
+    font-weight: 600;
+}
+.btn-brand:hover, .btn-brand:focus {
+    background-color: var(--color-primary-dark);
+    border-color: var(--color-primary-dark);
+    color: #fff;
+}
+
+.btn-accent {
+    background-color: var(--color-accent);
+    border-color: var(--color-accent);
+    color: var(--color-ink);
+    font-weight: 600;
+}
+.btn-accent:hover, .btn-accent:focus {
+    background-color: var(--color-accent-dark);
+    border-color: var(--color-accent-dark);
+    color: var(--color-ink);
+}
+
+.btn-outline-brand {
+    background-color: transparent;
+    border: 1.5px solid var(--color-primary);
+    color: var(--color-primary);
+    font-weight: 600;
+}
+.btn-outline-brand:hover {
+    background-color: var(--color-primary);
+    color: #fff;
+}
+
+.btn-soft-danger {
+    background-color: #FBEAE5;
+    border-color: #FBEAE5;
+    color: var(--color-lost);
+    font-weight: 600;
+}
+.btn-soft-danger:hover {
+    background-color: var(--color-lost);
+    border-color: var(--color-lost);
+    color: #fff;
+}
+
+/* ---- Navbar ----------------------------------------------------------*/
+.site-navbar {
+    background-color: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.brand-wordmark {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.4rem;
+    color: var(--color-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.brand-wordmark .brand-dot {
+    color: var(--color-accent);
+}
+
+.site-navbar .nav-link {
+    color: var(--color-ink);
+    font-weight: 500;
+}
+.site-navbar .nav-link.active {
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+.badge-notify {
+    background-color: var(--color-lost);
+    font-size: 0.65rem;
+    vertical-align: top;
+}
+
+/* ---- Hero --------------------------------------------------------- */
+.hero {
+    padding: 3.5rem 0 4.5rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.hero h1 {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.hero-search {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    padding: 0.4rem 0.5rem 0.4rem 1.25rem;
+    box-shadow: var(--shadow-card);
+}
+.hero-search input {
+    border: none;
+    background: transparent;
+}
+.hero-search input:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+/* Fanned mini ticket stack illustration on the hero */
+.hero-stack {
+    position: relative;
+    min-height: 320px;
+}
+.hero-stack .mini-ticket {
+    position: absolute;
+    width: 78%;
+    max-width: 320px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    padding: 1rem;
+}
+.hero-stack .mini-ticket:nth-child(1) { top: 0; left: 4%; transform: rotate(-6deg); z-index: 1; }
+.hero-stack .mini-ticket:nth-child(2) { top: 18%; left: 18%; transform: rotate(3deg); z-index: 2; }
+
+/* ---- How it works (a real 3-step sequence, so it's genuinely numbered) */
+.step-number {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 2.25rem;
+    color: var(--color-border);
+    line-height: 1;
+}
+
+/* ---- Institution callout band -------------------------------------*/
+.institution-band {
+    background-color: var(--color-primary);
+    color: #fff;
+    border-radius: var(--radius-card);
+}
+.institution-band .text-soft {
+    color: rgba(255, 255, 255, 0.78);
+}
+
+/* ---- THE SIGNATURE COMPONENT: ticket card --------------------------
+   Used for every item listing across the whole site: browse grid,
+   homepage "recent listings", item details header, dashboard lists.
+   Photo zone on top, a torn/perforated line, then the info zone below,
+   with a rotated corner tag for LOST / FOUND and a ticket reference
+   code — like a real lost-property claim ticket. */
+.ticket-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.ticket-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 10px rgba(30, 42, 47, 0.08), 0 18px 30px -16px rgba(30, 42, 47, 0.3);
+}
+
+.ticket-photo {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    background: #EFEAE0;
+    overflow: hidden;
+}
+.ticket-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.ticket-photo .no-photo {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-ink-soft);
+    font-size: 2rem;
+}
+
+.ticket-tag {
+    position: absolute;
+    top: 0.7rem;
+    left: -0.4rem;
+    transform: rotate(-6deg);
+    padding: 0.25rem 0.7rem;
+    border-radius: 4px;
+    font-family: var(--font-display);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #fff;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+.ticket-tag.tag-lost { background-color: var(--color-lost); }
+.ticket-tag.tag-found { background-color: var(--color-found); }
+
+/* The torn perforation between photo and details */
+.ticket-divider {
+    position: relative;
+    border-top: 2px dashed var(--color-border);
+    margin: 0 0.9rem;
+}
+.ticket-divider::before,
+.ticket-divider::after {
+    content: '';
+    position: absolute;
+    top: -8px;
+    width: 16px;
+    height: 16px;
+    background: var(--notch-bg);
+    border-radius: 50%;
+}
+.ticket-divider::before { left: -0.9rem; margin-left: -8px; }
+.ticket-divider::after { right: -0.9rem; margin-right: -8px; }
+
+.ticket-body {
+    padding: 0.9rem 1rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.ticket-title {
+    font-weight: 600;
+    font-size: 1.02rem;
+    margin-bottom: 0.35rem;
+    color: var(--color-ink);
+}
+
+.ticket-meta {
+    font-size: 0.84rem;
+    color: var(--color-ink-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    margin-bottom: 0.6rem;
+}
+
+.ticket-footer {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 0.6rem;
+}
+
+/* Status pill: open / claimed / resolved */
+.status-pill {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    text-transform: capitalize;
+}
+.status-pill.status-open { background: #EAF4F1; color: var(--color-found); }
+.status-pill.status-claimed { background: #FEF3E2; color: var(--color-accent-dark); }
+.status-pill.status-resolved { background: #ECEAE5; color: var(--color-ink-soft); }
+/* Claim statuses reuse the same visual language: pending=amber, approved=green, rejected=terracotta */
+.status-pill.status-pending { background: #FEF3E2; color: var(--color-accent-dark); }
+.status-pill.status-approved { background: #EAF4F1; color: var(--color-found); }
+.status-pill.status-rejected { background: #FBEAE5; color: var(--color-lost); }
+
+/* Institution badge, shown next to a poster's name */
+.institution-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    background: #E7F0EE;
+    border-radius: 999px;
+    padding: 0.15rem 0.55rem;
+}
+
+/* ---- Forms ---------------------------------------------------------*/
+.form-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    padding: 2rem;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 0.2rem rgba(14, 92, 86, 0.15);
+}
+
+.account-type-toggle .btn-check + .btn {
+    border: 1.5px solid var(--color-border);
+    color: var(--color-ink-soft);
+    font-weight: 600;
+}
+.account-type-toggle .btn-check:checked + .btn {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #fff;
+}
+
+/* ---- Chat ------------------------------------------------------------*/
+.chat-window {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    display: flex;
+    flex-direction: column;
+    height: 65vh;
+    min-height: 420px;
+}
+
+.chat-thread {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.chat-bubble {
+    max-width: 75%;
+    padding: 0.55rem 0.9rem;
+    border-radius: 16px;
+    font-size: 0.93rem;
+    line-height: 1.4;
+    position: relative;
+}
+.chat-bubble .chat-time {
+    display: block;
+    font-size: 0.68rem;
+    margin-top: 0.2rem;
+    opacity: 0.7;
+}
+
+.chat-bubble.sent {
+    align-self: flex-end;
+    background: var(--color-primary);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+}
+.chat-bubble.received {
+    align-self: flex-start;
+    background: #F1EEE6;
+    color: var(--color-ink);
+    border-bottom-left-radius: 4px;
+}
+
+.chat-input-row {
+    border-top: 1px solid var(--color-border);
+    padding: 0.75rem;
+    background: var(--color-surface);
+}
+
+/* ---- Empty states ----------------------------------------------------*/
+.empty-state {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    color: var(--color-ink-soft);
+}
+.empty-state .empty-icon {
+    font-size: 2.5rem;
+    color: var(--color-border);
+    margin-bottom: 0.75rem;
+}
+
+/* ---- Footer ----------------------------------------------------------*/
+.site-footer {
+    background-color: var(--color-ink);
+    color: rgba(255, 255, 255, 0.75);
+    padding: 2.5rem 0 1.5rem;
+    margin-top: 3rem;
+}
+.site-footer a {
+    color: rgba(255, 255, 255, 0.85);
+}
+.site-footer a:hover {
+    color: var(--color-accent);
+}
+.site-footer .brand-wordmark {
+    color: #fff;
+}
+
+/* ---- Responsive tweaks -------------------------------------------- */
+@media (max-width: 767.98px) {
+    .hero { padding: 2.25rem 0 2.5rem; text-align: center; }
+    .hero-stack { display: none; }
+    .form-card { padding: 1.25rem; }
+}
