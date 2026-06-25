@@ -6,40 +6,58 @@
    used for every item listing on the site.
    ===================================================================== */
 
+
 /* ---- Fonts -------------------------------------------------------- */
+
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
 /* ---- Design tokens -------------------------------------------------
    Change these and the whole site re-colours itself. */
-:root {
-    --color-bg: #FAF7F1;          /* warm paper background */
-    --color-surface: #FFFFFF;     /* cards, nav, forms */
-    --color-ink: #1E2A2F;         /* primary text */
-    --color-ink-soft: #5B6B70;    /* secondary text */
-    --color-primary: #0E5C56;     /* deep teal — brand, trust */
-    --color-primary-dark: #0A4640;
-    --color-accent: #E8A33D;      /* warm amber — calls to action */
-    --color-accent-dark: #C7872A;
-    --color-lost: #C1502E;        /* terracotta — "lost" tag */
-    --color-found: #2F8F7A;       /* teal-green — "found" tag */
-    --color-border: #E3DACB;      /* warm hairline border */
-    --notch-bg: var(--color-bg);  /* colour used for the ticket "punch holes" */
 
+:root {
+    --color-bg: #FAF7F1;
+    /* warm paper background */
+    --color-surface: #FFFFFF;
+    /* cards, nav, forms */
+    --color-ink: #1E2A2F;
+    /* primary text */
+    --color-ink-soft: #5B6B70;
+    /* secondary text */
+    --color-primary: #0E5C56;
+    /* deep teal — brand, trust */
+    --color-primary-dark: #0A4640;
+    --color-accent: #E8A33D;
+    /* warm amber — calls to action */
+    --color-accent-dark: #C7872A;
+    --color-lost: #C1502E;
+    /* terracotta — "lost" tag */
+    --color-found: #2F8F7A;
+    /* teal-green — "found" tag */
+    --color-border: #E3DACB;
+    /* warm hairline border */
+    --notch-bg: var(--color-bg);
+    /* colour used for the ticket "punch holes" */
     --font-display: 'Space Grotesk', 'Segoe UI', sans-serif;
     --font-body: 'Inter', 'Segoe UI', sans-serif;
-
     --radius-card: 14px;
     --shadow-card: 0 1px 2px rgba(30, 42, 47, 0.06), 0 10px 24px -14px rgba(30, 42, 47, 0.25);
 }
 
+
 /* ---- Base ----------------------------------------------------------*/
+
 body {
     background-color: var(--color-bg);
     color: var(--color-ink);
     font-family: var(--font-body);
 }
 
-h1, h2, h3, h4, h5, .display-font {
+h1,
+h2,
+h3,
+h4,
+h5,
+.display-font {
     font-family: var(--font-display);
     color: var(--color-ink);
     letter-spacing: -0.01em;
@@ -69,27 +87,39 @@ main {
     text-transform: uppercase;
 }
 
+
 /* Visible focus ring everywhere, for keyboard users */
-a:focus-visible, button:focus-visible, input:focus-visible,
-textarea:focus-visible, select:focus-visible {
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
     outline: 3px solid var(--color-accent);
     outline-offset: 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {
-    * { animation: none !important; transition: none !important; }
+    * {
+        animation: none !important;
+        transition: none !important;
+    }
 }
+
 
 /* ---- Buttons ---------------------------------------------------------
    Custom brand buttons. Bootstrap's .btn class still supplies the
    padding/border-radius/transition; these just override the colour. */
+
 .btn-brand {
     background-color: var(--color-primary);
     border-color: var(--color-primary);
     color: #fff;
     font-weight: 600;
 }
-.btn-brand:hover, .btn-brand:focus {
+
+.btn-brand:hover,
+.btn-brand:focus {
     background-color: var(--color-primary-dark);
     border-color: var(--color-primary-dark);
     color: #fff;
@@ -101,7 +131,9 @@ textarea:focus-visible, select:focus-visible {
     color: var(--color-ink);
     font-weight: 600;
 }
-.btn-accent:hover, .btn-accent:focus {
+
+.btn-accent:hover,
+.btn-accent:focus {
     background-color: var(--color-accent-dark);
     border-color: var(--color-accent-dark);
     color: var(--color-ink);
@@ -113,6 +145,7 @@ textarea:focus-visible, select:focus-visible {
     color: var(--color-primary);
     font-weight: 600;
 }
+
 .btn-outline-brand:hover {
     background-color: var(--color-primary);
     color: #fff;
@@ -124,13 +157,16 @@ textarea:focus-visible, select:focus-visible {
     color: var(--color-lost);
     font-weight: 600;
 }
+
 .btn-soft-danger:hover {
     background-color: var(--color-lost);
     border-color: var(--color-lost);
     color: #fff;
 }
 
+
 /* ---- Navbar ----------------------------------------------------------*/
+
 .site-navbar {
     background-color: var(--color-surface);
     border-bottom: 1px solid var(--color-border);
@@ -145,6 +181,7 @@ textarea:focus-visible, select:focus-visible {
     align-items: center;
     gap: 0.4rem;
 }
+
 .brand-wordmark .brand-dot {
     color: var(--color-accent);
 }
@@ -153,6 +190,7 @@ textarea:focus-visible, select:focus-visible {
     color: var(--color-ink);
     font-weight: 500;
 }
+
 .site-navbar .nav-link.active {
     color: var(--color-primary);
     font-weight: 600;
@@ -164,7 +202,9 @@ textarea:focus-visible, select:focus-visible {
     vertical-align: top;
 }
 
+
 /* ---- Hero --------------------------------------------------------- */
+
 .hero {
     padding: 3.5rem 0 4.5rem;
     border-bottom: 1px solid var(--color-border);
@@ -183,20 +223,25 @@ textarea:focus-visible, select:focus-visible {
     padding: 0.4rem 0.5rem 0.4rem 1.25rem;
     box-shadow: var(--shadow-card);
 }
+
 .hero-search input {
     border: none;
     background: transparent;
 }
+
 .hero-search input:focus {
     outline: none;
     box-shadow: none;
 }
 
+
 /* Fanned mini ticket stack illustration on the hero */
+
 .hero-stack {
     position: relative;
     min-height: 320px;
 }
+
 .hero-stack .mini-ticket {
     position: absolute;
     width: 78%;
@@ -207,10 +252,24 @@ textarea:focus-visible, select:focus-visible {
     box-shadow: var(--shadow-card);
     padding: 1rem;
 }
-.hero-stack .mini-ticket:nth-child(1) { top: 0; left: 4%; transform: rotate(-6deg); z-index: 1; }
-.hero-stack .mini-ticket:nth-child(2) { top: 18%; left: 18%; transform: rotate(3deg); z-index: 2; }
+
+.hero-stack .mini-ticket:nth-child(1) {
+    top: 0;
+    left: 4%;
+    transform: rotate(-6deg);
+    z-index: 1;
+}
+
+.hero-stack .mini-ticket:nth-child(2) {
+    top: 18%;
+    left: 18%;
+    transform: rotate(3deg);
+    z-index: 2;
+}
+
 
 /* ---- How it works (a real 3-step sequence, so it's genuinely numbered) */
+
 .step-number {
     font-family: var(--font-display);
     font-weight: 700;
@@ -219,15 +278,19 @@ textarea:focus-visible, select:focus-visible {
     line-height: 1;
 }
 
+
 /* ---- Institution callout band -------------------------------------*/
+
 .institution-band {
     background-color: var(--color-primary);
     color: #fff;
     border-radius: var(--radius-card);
 }
+
 .institution-band .text-soft {
     color: rgba(255, 255, 255, 0.78);
 }
+
 
 /* ---- THE SIGNATURE COMPONENT: ticket card --------------------------
    Used for every item listing across the whole site: browse grid,
@@ -235,6 +298,7 @@ textarea:focus-visible, select:focus-visible {
    Photo zone on top, a torn/perforated line, then the info zone below,
    with a rotated corner tag for LOST / FOUND and a ticket reference
    code — like a real lost-property claim ticket. */
+
 .ticket-card {
     background: var(--color-surface);
     border: 1px solid var(--color-border);
@@ -246,6 +310,7 @@ textarea:focus-visible, select:focus-visible {
     flex-direction: column;
     transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
+
 .ticket-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 4px 10px rgba(30, 42, 47, 0.08), 0 18px 30px -16px rgba(30, 42, 47, 0.3);
@@ -257,12 +322,14 @@ textarea:focus-visible, select:focus-visible {
     background: #EFEAE0;
     overflow: hidden;
 }
+
 .ticket-photo img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
 }
+
 .ticket-photo .no-photo {
     width: 100%;
     height: 100%;
@@ -288,15 +355,24 @@ textarea:focus-visible, select:focus-visible {
     color: #fff;
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
 }
-.ticket-tag.tag-lost { background-color: var(--color-lost); }
-.ticket-tag.tag-found { background-color: var(--color-found); }
+
+.ticket-tag.tag-lost {
+    background-color: var(--color-lost);
+}
+
+.ticket-tag.tag-found {
+    background-color: var(--color-found);
+}
+
 
 /* The torn perforation between photo and details */
+
 .ticket-divider {
     position: relative;
     border-top: 2px dashed var(--color-border);
     margin: 0 0.9rem;
 }
+
 .ticket-divider::before,
 .ticket-divider::after {
     content: '';
@@ -307,8 +383,16 @@ textarea:focus-visible, select:focus-visible {
     background: var(--notch-bg);
     border-radius: 50%;
 }
-.ticket-divider::before { left: -0.9rem; margin-left: -8px; }
-.ticket-divider::after { right: -0.9rem; margin-right: -8px; }
+
+.ticket-divider::before {
+    left: -0.9rem;
+    margin-left: -8px;
+}
+
+.ticket-divider::after {
+    right: -0.9rem;
+    margin-right: -8px;
+}
 
 .ticket-body {
     padding: 0.9rem 1rem 1.1rem;
@@ -341,7 +425,9 @@ textarea:focus-visible, select:focus-visible {
     padding-top: 0.6rem;
 }
 
+
 /* Status pill: open / claimed / resolved */
+
 .status-pill {
     font-size: 0.72rem;
     font-weight: 600;
@@ -349,15 +435,43 @@ textarea:focus-visible, select:focus-visible {
     border-radius: 999px;
     text-transform: capitalize;
 }
-.status-pill.status-open { background: #EAF4F1; color: var(--color-found); }
-.status-pill.status-claimed { background: #FEF3E2; color: var(--color-accent-dark); }
-.status-pill.status-resolved { background: #ECEAE5; color: var(--color-ink-soft); }
+
+.status-pill.status-open {
+    background: #EAF4F1;
+    color: var(--color-found);
+}
+
+.status-pill.status-claimed {
+    background: #FEF3E2;
+    color: var(--color-accent-dark);
+}
+
+.status-pill.status-resolved {
+    background: #ECEAE5;
+    color: var(--color-ink-soft);
+}
+
+
 /* Claim statuses reuse the same visual language: pending=amber, approved=green, rejected=terracotta */
-.status-pill.status-pending { background: #FEF3E2; color: var(--color-accent-dark); }
-.status-pill.status-approved { background: #EAF4F1; color: var(--color-found); }
-.status-pill.status-rejected { background: #FBEAE5; color: var(--color-lost); }
+
+.status-pill.status-pending {
+    background: #FEF3E2;
+    color: var(--color-accent-dark);
+}
+
+.status-pill.status-approved {
+    background: #EAF4F1;
+    color: var(--color-found);
+}
+
+.status-pill.status-rejected {
+    background: #FBEAE5;
+    color: var(--color-lost);
+}
+
 
 /* Institution badge, shown next to a poster's name */
+
 .institution-badge {
     display: inline-flex;
     align-items: center;
@@ -370,7 +484,9 @@ textarea:focus-visible, select:focus-visible {
     padding: 0.15rem 0.55rem;
 }
 
+
 /* ---- Forms ---------------------------------------------------------*/
+
 .form-card {
     background: var(--color-surface);
     border: 1px solid var(--color-border);
@@ -379,23 +495,27 @@ textarea:focus-visible, select:focus-visible {
     padding: 2rem;
 }
 
-.form-control:focus, .form-select:focus {
+.form-control:focus,
+.form-select:focus {
     border-color: var(--color-primary);
     box-shadow: 0 0 0 0.2rem rgba(14, 92, 86, 0.15);
 }
 
-.account-type-toggle .btn-check + .btn {
+.account-type-toggle .btn-check+.btn {
     border: 1.5px solid var(--color-border);
     color: var(--color-ink-soft);
     font-weight: 600;
 }
-.account-type-toggle .btn-check:checked + .btn {
+
+.account-type-toggle .btn-check:checked+.btn {
     background-color: var(--color-primary);
     border-color: var(--color-primary);
     color: #fff;
 }
 
+
 /* ---- Chat ------------------------------------------------------------*/
+
 .chat-window {
     background: var(--color-surface);
     border: 1px solid var(--color-border);
@@ -424,6 +544,7 @@ textarea:focus-visible, select:focus-visible {
     line-height: 1.4;
     position: relative;
 }
+
 .chat-bubble .chat-time {
     display: block;
     font-size: 0.68rem;
@@ -437,6 +558,7 @@ textarea:focus-visible, select:focus-visible {
     color: #fff;
     border-bottom-right-radius: 4px;
 }
+
 .chat-bubble.received {
     align-self: flex-start;
     background: #F1EEE6;
@@ -450,38 +572,55 @@ textarea:focus-visible, select:focus-visible {
     background: var(--color-surface);
 }
 
+
 /* ---- Empty states ----------------------------------------------------*/
+
 .empty-state {
     text-align: center;
     padding: 3rem 1.5rem;
     color: var(--color-ink-soft);
 }
+
 .empty-state .empty-icon {
     font-size: 2.5rem;
     color: var(--color-border);
     margin-bottom: 0.75rem;
 }
 
+
 /* ---- Footer ----------------------------------------------------------*/
+
 .site-footer {
     background-color: var(--color-ink);
     color: rgba(255, 255, 255, 0.75);
     padding: 2.5rem 0 1.5rem;
     margin-top: 3rem;
 }
+
 .site-footer a {
     color: rgba(255, 255, 255, 0.85);
 }
+
 .site-footer a:hover {
     color: var(--color-accent);
 }
+
 .site-footer .brand-wordmark {
     color: #fff;
 }
 
+
 /* ---- Responsive tweaks -------------------------------------------- */
+
 @media (max-width: 767.98px) {
-    .hero { padding: 2.25rem 0 2.5rem; text-align: center; }
-    .hero-stack { display: none; }
-    .form-card { padding: 1.25rem; }
+    .hero {
+        padding: 2.25rem 0 2.5rem;
+        text-align: center;
+    }
+    .hero-stack {
+        display: none;
+    }
+    .form-card {
+        padding: 1.25rem;
+    }
 }

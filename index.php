@@ -21,9 +21,36 @@ require 'includes/header.php';
 <!-- ============================================================ -->
 <!-- HERO                                                          -->
 <!-- ============================================================ -->
+<style>
+    .hero {
+        position: relative; /* Keeps the absolute background image bounded inside this section */
+        overflow: hidden;
+        padding: 80px 0;    /* Optional: Adds comfortable vertical spacing for the content */
+    }
+
+    .hero-main-img {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        min-width: 100%;
+        min-height: 100%;
+        width: auto;
+        height: auto;
+        object-fit: cover;
+        
+        z-index: -1;          /* Safely pushes the image behind your container text and buttons */
+        opacity: 0.35;        /* Adjust between 0.05 and 0.25 depending on text legibility */
+        pointer-events: none; /* Allows users to highlight text and click buttons through the image */
+    }
+</style>
+
 <section class="hero">
+    
     <div class="container">
+        <img src="assets\images\id lost .jpeg" alt="Illustrated scene showing people helping each other with lost and found items" class="img-fluid hero-main-img">
         <div class="row align-items-center gy-5">
+             
             <div class="col-lg-6">
                 <h1 class="mb-3">Lost something? Found something?<br>Let's get it back home.</h1>
                 <p class="text-soft fs-5 mb-4" style="max-width: 480px;">
