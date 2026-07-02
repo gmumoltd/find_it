@@ -40,6 +40,61 @@ if (!$is_poster && !$is_claimant) {
     exit();
 }
 
+// =====================================================================
+// MONETIZATION CHECK: VALIDATE PAYWALL GATEWAY STATUS
+// =====================================================================
+$pay_check_sql = "SELECT * FROM item_claims WHERE item_id = ? AND loser_id = ? AND finder_id = ?";
+$pay_stmt = mysqli_prepare($conn, $pay_check_sql);
+mysqli_stmt_bind_param($pay_stmt, "iii", $conversation['item_id'], $conversation['claimant_id'], $conversation['poster_id']);
+mysqli_stmt_execute($pay_stmt);
+$payment_record = mysqli_fetch_assoc(mysqli_stmt_get_result($pay_stmt));
+mysqli_stmt_close($pay_stmt);
+
+$is_chat_unlocked = true;
+
+// If a record exists and it is unpaid, enforce the paywall ONLY for the claimant (loser)
+if ($payment_record) {
+    if ($payment_record['payment_status'] === 'unpaid') {
+        $is_chat_unlocked = false;
+        
+        if ($is_claimant) {
+            // Render beautiful M-Pesa paywall skin and halt downstream script processing
+            ?>
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <title>Unlock Chat Gateway</title>
+                <link rel="stylesheet" href="assets/css/style.css">
+                <style>
+                    .pay-box { max-width: 450px; margin: 100px auto; padding: 30px; border: 1px solid #ddd; border-radius: 8px; text-align: center; font-family: sans-serif; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+                    .mpesa-btn { background-color: #33b5e5; color: white; border: none; padding: 12px 24px; border-radius: 4px; font-size: 16px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 15px; }
+                    .mpesa-btn:hover { background-color: #008cc1; }
+                    .input-phone { width: 94%; padding: 11px; margin: 12px 0; border: 1px solid #ccc; border-radius: 4px; font-size: 15px; }
+                    .badge-price { background: #e1f5fe; color: #0288d1; padding: 4px 10px; border-radius: 20px; font-weight: bold; }
+                </style>
+            </head>
+            <body>
+                <div class="pay-box">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/M-PESA_LOGO-01.svg/512px-M-PESA_LOGO-01.svg.png" width="130" alt="M-Pesa"><br><br>
+                    <h2>Unlock Conversation Access</h2>
+                    <p>Your claim validation request was approved! To unlock direct messaging with the finder, pay a small platform maintenance fee of <span class="badge-price">KES 20.00</span>.</p>
+                    <p style="font-size:12px; color:gray; line-height:1.4;">If you confirm this item is a mismatch after chatting, KES 18.00 will be instantly reversed into your system wallet account (KES 2 retained for service charges).</p>
+                    
+                    <form action="trigger_pay.php" method="POST">
+                        <input type="hidden" name="claim_track_id" value="<?php echo $payment_record['id']; ?>">
+                        <input type="text" name="phone" class="input-phone" placeholder="e.g. 0712345678" required>
+                        <button type="submit" class="mpesa-btn">Request M-Pesa STK Push</button>
+                    </form>
+                </div>
+            </body>
+            </html>
+            <?php
+            exit();
+        }
+    }
+}
+
 $is_ajax = (($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'XMLHttpRequest');
 
 // 3. HANDLE SENDING A NEW MESSAGE
@@ -51,17 +106,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($message_text === '') {
         $send_error = "Message cannot be empty.";
     } else {
+        // MEASURE 2: Apply regular expression filter if the user hasn't cleared payment or is bypassing
+        $phonePattern = '/(\+?254|0)[17]\d{8}/'; 
+        if (!$is_chat_unlocked && preg_match($phonePattern, $message_text)) {
+            $message_text = preg_replace($phonePattern, "[Contact details hidden until payment settled]", $message_text);
+        }
+
         $insert_sql = "INSERT INTO messages (conversation_id, sender_id, message) VALUES (?, ?, ?)";
         $insert_stmt = mysqli_prepare($conn, $insert_sql);
         mysqli_stmt_bind_param($insert_stmt, "iis", $conversation_id, $_SESSION['user_id'], $message_text);
 
-        // -----------------------------------------------------------
-        // PAYMENT-GATING HOOK (future phase — not implemented yet).
-        // A later version could check here whether this conversation
-        // has passed a free-message limit and, if so, stop here and
-        // ask for payment (e.g. M-Pesa) instead of executing the
-        // insert below. Left as a plain comment per current scope.
-        // -----------------------------------------------------------
         if (mysqli_stmt_execute($insert_stmt)) {
             $sent_message = [
                 'id'         => mysqli_insert_id($conn),
@@ -83,7 +137,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 
-    // No-JS fallback: redirect back to the same chat (POST-redirect-GET pattern)
     header("Location: chat.php?id=" . $conversation_id);
     exit();
 }
@@ -112,6 +165,26 @@ require 'includes/header.php';
 
 <section class="py-5">
     <div class="container" style="max-width: 760px;">
+        
+        <?php if ($payment_record && $payment_record['payment_status'] === 'paid'): ?>
+            <div class="alert alert-success d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2" style="border-left: 5px solid #2e7d32;">
+                <div>
+                    <i class="bi bi-shield-check-fill me-2 text-success"></i>
+                    <strong>Payment Verified Secure Handoff:</strong> 
+                    <?php if ($is_claimant): ?>
+                        Provide this Verification PIN to the finder when you safely meet up and receive your item.
+                    <?php else: ?>
+                        Do not release this item until the claimant gives you their generated 4-digit confirmation PIN.
+                    <?php endif; ?>
+                </div>
+                <div>
+                    <span style="font-size: 18px; font-weight: bold; background: white; padding: 6px 14px; border-radius: 4px; letter-spacing: 2px; border: 1px dashed #2e7d32;">
+                        <?php echo htmlspecialchars($payment_record['handoff_pin']); ?>
+                    </span>
+                </div>
+            </div>
+        <?php endif; ?>
+
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
             <div>
                 <h4 class="mb-0">
@@ -125,7 +198,14 @@ require 'includes/header.php';
                     <span class="status-pill status-<?php echo $conversation['item_status']; ?> ms-1"><?php echo h($conversation['item_status']); ?></span>
                 </a>
             </div>
-            <a href="inbox.php" class="btn btn-outline-brand btn-sm"><i class="bi bi-arrow-left"></i> Inbox</a>
+            <div class="d-flex gap-2">
+                <?php if ($payment_record && $payment_record['payment_status'] === 'paid' && $is_claimant): ?>
+                    <a href="process_mismatch.php?claim_id=<?php echo $payment_record['id']; ?>" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure this found item is not yours? This will close the chat and refund KES 18.00 back to your profile wallet.');">
+                        <i class="bi bi-x-circle"></i> Not My Item (Refund)
+                    </a>
+                <?php endif; ?>
+                <a href="inbox.php" class="btn btn-outline-brand btn-sm"><i class="bi bi-arrow-left"></i> Inbox</a>
+            </div>
         </div>
 
         <div class="chat-window">

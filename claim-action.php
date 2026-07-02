@@ -14,7 +14,8 @@ if ($id <= 0 || !in_array($action, ['approve', 'reject'], true)) {
 }
 
 // Only the poster who owns the item this claim is against may act on it.
-$sql = "SELECT cl.id, cl.item_id, cl.status, i.user_id AS poster_id
+// Fetching claimant (user_id from claims) so we know who pays later.
+$sql = "SELECT cl.id, cl.item_id, cl.status, cl.user_id AS claimant_id, i.user_id AS poster_id
         FROM claims cl
         INNER JOIN items i ON cl.item_id = i.id
         WHERE cl.id = ?";
@@ -29,8 +30,7 @@ if (!$claim || (int) $claim['poster_id'] !== (int) $_SESSION['user_id']) {
     exit();
 }
 
-// Already decided — nothing to do (also stops a refreshed/replayed link from
-// re-triggering the reject-others side effect a second time).
+// Already decided — nothing to do
 if ($claim['status'] !== 'pending') {
     header("Location: claims.php");
     exit();
@@ -39,12 +39,20 @@ if ($claim['status'] !== 'pending') {
 if ($action === 'approve') {
     $approve_sql = "UPDATE claims SET status = 'approved' WHERE id = ?";
     $approve_stmt = mysqli_prepare($conn, $approve_sql);
+    $approve_stmt = mysqli_prepare($conn, $approve_sql);
     mysqli_stmt_bind_param($approve_stmt, "i", $id);
     mysqli_stmt_execute($approve_stmt);
     mysqli_stmt_close($approve_stmt);
 
+    // MONETIZATION STEP: Create a record tracking that this approved chat is locked and unpaid
+    $fee_amount = 20.00; // Your system maintenance access fee
+    $init_payment_sql = "INSERT INTO item_claims (item_id, loser_id, finder_id, amount_paid, payment_status) VALUES (?, ?, ?, ?, 'unpaid')";
+    $pay_stmt = mysqli_prepare($conn, $init_payment_sql);
+    mysqli_stmt_bind_param($pay_stmt, "iiid", $claim['item_id'], $claim['claimant_id'], $claim['poster_id'], $fee_amount);
+    mysqli_stmt_execute($pay_stmt);
+    mysqli_stmt_close($pay_stmt);
+
     // Approving one claim automatically closes out any other pending claims
-    // on the same item — only one person can end up with it.
     $reject_others_sql = "UPDATE claims SET status = 'rejected' WHERE item_id = ? AND id != ? AND status = 'pending'";
     $reject_others_stmt = mysqli_prepare($conn, $reject_others_sql);
     mysqli_stmt_bind_param($reject_others_stmt, "ii", $claim['item_id'], $id);
@@ -60,8 +68,8 @@ if ($action === 'approve') {
     $reject_sql = "UPDATE claims SET status = 'rejected' WHERE id = ?";
     $reject_stmt = mysqli_prepare($conn, $reject_sql);
     mysqli_stmt_bind_param($reject_stmt, "i", $id);
-    mysqli_stmt_execute($reject_stmt);
-    mysqli_stmt_close($reject_stmt);
+    mysqli_stmt_execute($reject_sql);
+    mysqli_stmt_close($reject_sql);
 }
 
 header("Location: claims.php");
