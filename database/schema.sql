@@ -32,6 +32,7 @@ CREATE TABLE users (
     phone             VARCHAR(20)  DEFAULT NULL,
     password          VARCHAR(255) NOT NULL,        -- always stored hashed via password_hash()
     location          VARCHAR(150) DEFAULT NULL,
+    wallet_balance    DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     photo             VARCHAR(255) DEFAULT NULL,    -- profile photo filename, stored in uploads/profiles/
     created_at        TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
@@ -140,8 +141,75 @@ CREATE TABLE messages (
     INDEX idx_conversation (conversation_id)
 ) ENGINE=InnoDB;
 
+-- ---------------------------------------------------------------------
+-- 7. ITEM CLAIMS / PAYMENT TRACKING
+--    Tracks the approved claim, who must pay, and the M-Pesa payment state.
+-- ---------------------------------------------------------------------
+CREATE TABLE item_claims (
+    id               INT AUTO_INCREMENT PRIMARY KEY,
+    item_id          INT NOT NULL,
+    loser_id         INT NOT NULL,
+    finder_id        INT NOT NULL,
+    amount_paid      DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    payment_status       ENUM('unpaid', 'paid', 'refunded') NOT NULL DEFAULT 'unpaid',
+    mpesa_receipt        VARCHAR(50) DEFAULT NULL,
+    checkout_request_id  VARCHAR(100) DEFAULT NULL,
+    handoff_pin          VARCHAR(10) DEFAULT NULL,
+    created_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE,
+    FOREIGN KEY (loser_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (finder_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_item_claim (item_id, loser_id, finder_id),
+    INDEX idx_loser_finder (loser_id, finder_id),
+    INDEX idx_payment_status (payment_status)
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------
+-- 8. M-PESA CALLBACK LOGS
+--    Stores every webhook delivery for later debugging and reconciliation.
+-- ---------------------------------------------------------------------
+CREATE TABLE mpesa_callback_logs (
+    id                    INT AUTO_INCREMENT PRIMARY KEY,
+    claim_id              INT NOT NULL,
+    checkout_request_id   VARCHAR(100) DEFAULT NULL,
+    result_code           INT NOT NULL,
+    result_desc           VARCHAR(255) DEFAULT NULL,
+    payload               TEXT NOT NULL,
+    created_at            TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (claim_id) REFERENCES item_claims(id) ON DELETE CASCADE,
+    INDEX idx_claim_id (claim_id),
+    INDEX idx_checkout_request_id (checkout_request_id)
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------
+-- UPGRADE SQL FOR EXISTING INSTALLATIONS
+-- Run these statements if your database was created before this payment
+-- release and needs the new M-Pesa / wallet tracking columns.
+-- ---------------------------------------------------------------------
+
+ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS wallet_balance DECIMAL(10,2) NOT NULL DEFAULT 0.00;
+
+ALTER TABLE item_claims
+    ADD COLUMN IF NOT EXISTS mpesa_receipt VARCHAR(50) DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS checkout_request_id VARCHAR(100) DEFAULT NULL;
+
+CREATE TABLE IF NOT EXISTS mpesa_callback_logs (
+    id                    INT AUTO_INCREMENT PRIMARY KEY,
+    claim_id              INT NOT NULL,
+    checkout_request_id   VARCHAR(100) DEFAULT NULL,
+    result_code           INT NOT NULL,
+    result_desc           VARCHAR(255) DEFAULT NULL,
+    payload               TEXT NOT NULL,
+    created_at            TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (claim_id) REFERENCES item_claims(id) ON DELETE CASCADE,
+    INDEX idx_claim_id (claim_id),
+    INDEX idx_checkout_request_id (checkout_request_id)
+) ENGINE=InnoDB;
+
 -- =====================================================================
---  SAMPLE / DEMO DATA
+-- 9. SAMPLE / DEMO DATA
 --  Just enough so the site isn't empty the first time you open it.
 --  Demo login for both accounts below: password is  Password123
 --  Feel free to delete everything in this section for a real client.

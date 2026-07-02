@@ -51,48 +51,12 @@ $payment_record = mysqli_fetch_assoc(mysqli_stmt_get_result($pay_stmt));
 mysqli_stmt_close($pay_stmt);
 
 $is_chat_unlocked = true;
+$chat_locked = false;
 
 // If a record exists and it is unpaid, enforce the paywall ONLY for the claimant (loser)
-if ($payment_record) {
-    if ($payment_record['payment_status'] === 'unpaid') {
-        $is_chat_unlocked = false;
-        
-        if ($is_claimant) {
-            // Render beautiful M-Pesa paywall skin and halt downstream script processing
-            ?>
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <title>Unlock Chat Gateway</title>
-                <link rel="stylesheet" href="assets/css/style.css">
-                <style>
-                    .pay-box { max-width: 450px; margin: 100px auto; padding: 30px; border: 1px solid #ddd; border-radius: 8px; text-align: center; font-family: sans-serif; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-                    .mpesa-btn { background-color: #33b5e5; color: white; border: none; padding: 12px 24px; border-radius: 4px; font-size: 16px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 15px; }
-                    .mpesa-btn:hover { background-color: #008cc1; }
-                    .input-phone { width: 94%; padding: 11px; margin: 12px 0; border: 1px solid #ccc; border-radius: 4px; font-size: 15px; }
-                    .badge-price { background: #e1f5fe; color: #0288d1; padding: 4px 10px; border-radius: 20px; font-weight: bold; }
-                </style>
-            </head>
-            <body>
-                <div class="pay-box">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/M-PESA_LOGO-01.svg/512px-M-PESA_LOGO-01.svg.png" width="130" alt="M-Pesa"><br><br>
-                    <h2>Unlock Conversation Access</h2>
-                    <p>Your claim validation request was approved! To unlock direct messaging with the finder, pay a small platform maintenance fee of <span class="badge-price">KES 20.00</span>.</p>
-                    <p style="font-size:12px; color:gray; line-height:1.4;">If you confirm this item is a mismatch after chatting, KES 18.00 will be instantly reversed into your system wallet account (KES 2 retained for service charges).</p>
-                    
-                    <form action="trigger_pay.php" method="POST">
-                        <input type="hidden" name="claim_track_id" value="<?php echo $payment_record['id']; ?>">
-                        <input type="text" name="phone" class="input-phone" placeholder="e.g. 0712345678" required>
-                        <button type="submit" class="mpesa-btn">Request M-Pesa STK Push</button>
-                    </form>
-                </div>
-            </body>
-            </html>
-            <?php
-            exit();
-        }
-    }
+if ($payment_record && $payment_record['payment_status'] === 'unpaid') {
+    $is_chat_unlocked = false;
+    $chat_locked = $is_claimant;
 }
 
 $is_ajax = (($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'XMLHttpRequest');
@@ -103,7 +67,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $send_error = '';
     $sent_message = null;
 
-    if ($message_text === '') {
+    if (!$is_chat_unlocked && $is_claimant) {
+        $send_error = "This conversation is locked until payment is verified.";
+    } elseif ($message_text === '') {
         $send_error = "Message cannot be empty.";
     } else {
         // MEASURE 2: Apply regular expression filter if the user hasn't cleared payment or is bypassing
@@ -158,10 +124,91 @@ $messages_result = mysqli_stmt_get_result($messages_stmt);
 $other_name = $is_poster ? $conversation['claimant_name'] : $conversation['poster_name'];
 $other_account_type = $is_poster ? $conversation['claimant_account_type'] : $conversation['poster_account_type'];
 
+$show_payment_success_message = false;
+if ($payment_record && $payment_record['payment_status'] === 'paid' && $is_claimant) {
+    $show_payment_success_message = true;
+}
+
 $extra_scripts = '<script src="assets/js/chat.js"></script>';
 $page_title = $other_name . " — " . SITE_NAME;
 require 'includes/header.php';
 ?>
+
+<?php if ($show_payment_success_message): ?>
+    <div class="container" style="max-width:760px;">
+        <div class="alert alert-success mb-4" style="border-left: 5px solid #28a745;">
+            <strong>Payment confirmed!</strong> Your M-Pesa payment has been verified and the chat is now unlocked.
+        </div>
+    </div>
+<?php endif; ?>
+
+<?php if ($chat_locked): ?>
+<style>
+.chat-window.blurred,
+.chat-input-row.blurred {
+    filter: blur(4px) grayscale(0.45);
+    pointer-events: none;
+    user-select: none;
+}
+.chat-window-wrapper {
+    position: relative;
+}
+.chat-paywall-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(255,255,255,0.95);
+    z-index: 10;
+}
+.chat-paywall-card {
+    width: min(100%, 520px);
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #ddd;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.12);
+    padding: 28px;
+    text-align: center;
+}
+.chat-paywall-card h2 {
+    margin-bottom: 12px;
+    font-size: 1.35rem;
+}
+.chat-paywall-card p {
+    color: #444;
+    line-height: 1.6;
+}
+.chat-paywall-card .mpesa-btn {
+    background-color: #33b5e5;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 20px;
+    width: 100%;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-top: 16px;
+}
+.chat-paywall-card .mpesa-btn:hover {
+    background-color: #008cc1;
+}
+.chat-paywall-card .input-phone {
+    width: 100%;
+    padding: 12px;
+    margin-top: 14px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+.chat-paywall-card .payment-target {
+    margin: 10px 0 20px;
+    font-weight: 600;
+    color: #1d3557;
+}
+</style>
+<?php endif; ?>
 
 <section class="py-5">
     <div class="container" style="max-width: 760px;">
@@ -208,28 +255,48 @@ require 'includes/header.php';
             </div>
         </div>
 
-        <div class="chat-window">
-            <div class="chat-thread" id="chatThread" data-conversation-id="<?php echo $conversation_id; ?>">
-                <?php if (mysqli_num_rows($messages_result) === 0): ?>
-                    <div class="empty-state">
-                        <p class="mb-0">Say hello and get the conversation started.</p>
-                    </div>
-                <?php else: ?>
-                    <?php while ($msg = mysqli_fetch_assoc($messages_result)): ?>
-                        <?php $is_mine = ((int) $msg['sender_id'] === (int) $_SESSION['user_id']); ?>
-                        <div class="chat-bubble <?php echo $is_mine ? 'sent' : 'received'; ?>" data-message-id="<?php echo (int) $msg['id']; ?>">
-                            <?php echo nl2br(h($msg['message'])); ?>
-                            <span class="chat-time"><?php echo date('g:i A', strtotime($msg['created_at'])); ?></span>
+        <div class="chat-window-wrapper">
+            <div class="chat-window <?php echo $chat_locked ? 'blurred' : ''; ?>">
+                <div class="chat-thread" id="chatThread" data-conversation-id="<?php echo $conversation_id; ?>">
+                    <?php if (mysqli_num_rows($messages_result) === 0): ?>
+                        <div class="empty-state">
+                            <p class="mb-0">Say hello and get the conversation started.</p>
                         </div>
-                    <?php endwhile; ?>
-                <?php endif; ?>
+                    <?php else: ?>
+                        <?php while ($msg = mysqli_fetch_assoc($messages_result)): ?>
+                            <?php $is_mine = ((int) $msg['sender_id'] === (int) $_SESSION['user_id']); ?>
+                            <div class="chat-bubble <?php echo $is_mine ? 'sent' : 'received'; ?>" data-message-id="<?php echo (int) $msg['id']; ?>">
+                                <?php echo nl2br(h($msg['message'])); ?>
+                                <span class="chat-time"><?php echo date('g:i A', strtotime($msg['created_at'])); ?></span>
+                            </div>
+                        <?php endwhile; ?>
+                    <?php endif; ?>
+                </div>
             </div>
-            <div class="chat-input-row">
-                <form id="chatForm" method="POST" action="chat.php?id=<?php echo $conversation_id; ?>" class="d-flex gap-2">
-                    <textarea name="message" id="chatMessageInput" class="form-control" rows="1" placeholder="Type a message..." required></textarea>
-                    <button type="submit" id="chatSendBtn" class="btn btn-brand"><i class="bi bi-send-fill"></i></button>
-                </form>
-            </div>
+
+            <?php if ($chat_locked): ?>
+                <div class="chat-paywall-overlay">
+                    <div class="chat-paywall-card">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/M-PESA_LOGO-01.svg/512px-M-PESA_LOGO-01.svg.png" width="110" alt="M-Pesa">
+                        <h2>Verify payment before chatting</h2>
+                        <p>To unlock messages, pay the platform fee first. Enter your phone number below and you will receive an M-Pesa prompt for verification.</p>
+                        <p class="payment-target">Pay to: <strong>0743985962</strong></p>
+                        <form action="trigger_pay.php" method="POST">
+                            <input type="hidden" name="claim_track_id" value="<?php echo $payment_record['id']; ?>">
+                            <?php echo csrf_input_field(); ?>
+                            <input type="text" name="phone" class="input-phone" placeholder="e.g. 0712345678" required>
+                            <button type="submit" class="mpesa-btn">Request M-Pesa Prompt</button>
+                        </form>
+                    </div>
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <div class="chat-input-row <?php echo $chat_locked ? 'blurred' : ''; ?>">
+            <form id="chatForm" method="POST" action="chat.php?id=<?php echo $conversation_id; ?>" class="d-flex gap-2">
+                <textarea name="message" id="chatMessageInput" class="form-control" rows="1" placeholder="Type a message..." <?php echo $chat_locked ? 'readonly' : ''; ?> required></textarea>
+                <button type="submit" id="chatSendBtn" class="btn btn-brand" <?php echo $chat_locked ? 'disabled' : ''; ?>><i class="bi bi-send-fill"></i></button>
+            </form>
         </div>
     </div>
 </section>

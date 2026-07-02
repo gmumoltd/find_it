@@ -39,7 +39,30 @@ directly with the other person to arrange a hand-over.
    ```
    php -S localhost:8000
    ```
+## Upgrading an Existing Database
+If you already have a database from an earlier version of this app, run the following SQL after importing the schema or before starting the app:
 
+```sql
+ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS wallet_balance DECIMAL(10,2) NOT NULL DEFAULT 0.00;
+
+ALTER TABLE item_claims
+    ADD COLUMN IF NOT EXISTS mpesa_receipt VARCHAR(50) DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS checkout_request_id VARCHAR(100) DEFAULT NULL;
+
+CREATE TABLE IF NOT EXISTS mpesa_callback_logs (
+    id                    INT AUTO_INCREMENT PRIMARY KEY,
+    claim_id              INT NOT NULL,
+    checkout_request_id   VARCHAR(100) DEFAULT NULL,
+    result_code           INT NOT NULL,
+    result_desc           VARCHAR(255) DEFAULT NULL,
+    payload               TEXT NOT NULL,
+    created_at            TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (claim_id) REFERENCES item_claims(id) ON DELETE CASCADE,
+    INDEX idx_claim_id (claim_id),
+    INDEX idx_checkout_request_id (checkout_request_id)
+) ENGINE=InnoDB;
+```
 ## Demo accounts
 
 The schema seeds two accounts for trying the site out — delete this section

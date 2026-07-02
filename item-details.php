@@ -143,7 +143,7 @@ require 'includes/header.php';
                     <a href="login.php" class="btn btn-brand w-100 py-2">Login to Claim This Item</a>
                 <?php else: ?>
                     <a href="claim.php?item_id=<?php echo (int) $item['id']; ?>" class="btn btn-brand w-100 py-2">
-                        <i class="bi bi-hand-index-thumb"></i> This Is Mine — Claim It
+                        <i class="bi bi-hand-index-thumb"></i> Pay KES 20 to Claim This Item
                     </a>
                 <?php endif; ?>
             </div>

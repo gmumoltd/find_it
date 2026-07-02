@@ -55,6 +55,30 @@ if ($already_claimed) {
     }
 }
 
+$payment_record = null;
+if (!$is_owner && !$already_claimed) {
+    $payment_sql = "SELECT * FROM item_claims WHERE item_id = ? AND loser_id = ? AND finder_id = ?";
+    $payment_stmt = mysqli_prepare($conn, $payment_sql);
+    mysqli_stmt_bind_param($payment_stmt, "iii", $item_id, $_SESSION['user_id'], $item['user_id']);
+    mysqli_stmt_execute($payment_stmt);
+    $payment_record = mysqli_fetch_assoc(mysqli_stmt_get_result($payment_stmt));
+    mysqli_stmt_close($payment_stmt);
+
+    if (!$payment_record && $item['status'] === 'open') {
+        $init_payment_sql = "INSERT INTO item_claims (item_id, loser_id, finder_id, amount_paid, payment_status) VALUES (?, ?, ?, 20.00, 'unpaid')";
+        $payment_stmt = mysqli_prepare($conn, $init_payment_sql);
+        mysqli_stmt_bind_param($payment_stmt, "iii", $item_id, $_SESSION['user_id'], $item['user_id']);
+        mysqli_stmt_execute($payment_stmt);
+        mysqli_stmt_close($payment_stmt);
+
+        $payment_stmt = mysqli_prepare($conn, $payment_sql);
+        mysqli_stmt_bind_param($payment_stmt, "iii", $item_id, $_SESSION['user_id'], $item['user_id']);
+        mysqli_stmt_execute($payment_stmt);
+        $payment_record = mysqli_fetch_assoc(mysqli_stmt_get_result($payment_stmt));
+        mysqli_stmt_close($payment_stmt);
+    }
+}
+
 $errors = [];
 $proof_message = '';
 
@@ -63,6 +87,10 @@ if (isset($_POST['submit_claim'])) {
     $proof_message = trim($_POST['proof_message'] ?? '');
     if ($proof_message === '') {
         $errors[] = "Please describe why you believe this item is yours.";
+    }
+
+    if (!$payment_record || $payment_record['payment_status'] !== 'paid') {
+        $errors[] = "Please complete the KES 20 payment before submitting your claim.";
     }
 
     if (empty($errors)) {
@@ -135,13 +163,29 @@ require 'includes/header.php';
                 </div>
             <?php endif; ?>
 
-            <form method="POST" action="claim.php?item_id=<?php echo (int) $item_id; ?>">
-                <div class="mb-4">
-                    <label for="proof_message" class="form-label">Why is this item yours?</label>
-                    <textarea name="proof_message" id="proof_message" class="form-control" rows="5" placeholder="e.g. It's a black Tecno phone with a cracked top-left corner, lock screen has a photo of..." required><?php echo h($proof_message); ?></textarea>
+            <?php if ($payment_record && $payment_record['payment_status'] === 'unpaid'): ?>
+                <div class="alert alert-warning">
+                    A small KES 20 fee is required before you can submit your claim and access the chat.
+                    Please complete the payment below, then return to this page to continue.
                 </div>
-                <button type="submit" name="submit_claim" class="btn btn-brand w-100 py-2">Submit Claim &amp; Start Chat</button>
-            </form>
+                <form action="trigger_pay.php" method="POST">
+                    <input type="hidden" name="claim_track_id" value="<?php echo $payment_record['id']; ?>">
+                    <?php echo csrf_input_field(); ?>
+                    <div class="mb-4">
+                        <label for="phone" class="form-label">M-Pesa Phone Number</label>
+                        <input type="text" name="phone" id="phone" class="form-control" placeholder="e.g. 0712345678" required>
+                    </div>
+                    <button type="submit" class="btn btn-brand w-100 py-2">Pay KES 20 to Claim</button>
+                </form>
+            <?php else: ?>
+                <form method="POST" action="claim.php?item_id=<?php echo (int) $item_id; ?>">
+                    <div class="mb-4">
+                        <label for="proof_message" class="form-label">Why is this item yours?</label>
+                        <textarea name="proof_message" id="proof_message" class="form-control" rows="5" placeholder="e.g. It's a black Tecno phone with a cracked top-left corner, lock screen has a photo of..." required><?php echo h($proof_message); ?></textarea>
+                    </div>
+                    <button type="submit" name="submit_claim" class="btn btn-brand w-100 py-2">Submit Claim &amp; Start Chat</button>
+                </form>
+            <?php endif; ?>
         </div>
     </div>
 </section>
